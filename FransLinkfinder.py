@@ -4,7 +4,7 @@
 #  Copyright (c) 2022 Frans Hendrik Botes
 #  Credit to https://github.com/GerbenJavado/LinkFinder for the idea and regex
 #
-from burp import IBurpExtender, IScannerCheck, IScanIssue, ITab
+from burp import IBurpExtender, ITab
 from java.io import PrintWriter
 from java.net import URL
 from java.util import ArrayList, List
@@ -49,15 +49,13 @@ class Run(Runnable):
 # Needed params
 JSExclusionList = ['jquery', 'google-analytics','gpt.js','modernizr','gtm','fbevents']
 
-class BurpExtender(IBurpExtender, IScannerCheck, ITab):
+class BurpExtender(IBurpExtender, ITab):
     def registerExtenderCallbacks(self, callbacks):
         self.callbacks = callbacks
         self.helpers = callbacks.getHelpers()
         callbacks.setExtensionName("BurpJSLinkFinderv2")
-        callbacks.issueAlert("BurpJSLinkFinderv2 Passive Scanner enabled")
         stdout = PrintWriter(callbacks.getStdout(), True)
         stderr = PrintWriter(callbacks.getStderr(), True)
-        callbacks.registerScannerCheck(self)
         self.threads = []
         self.initUI()
         # customize our UI components
@@ -263,8 +261,6 @@ class BurpExtender(IBurpExtender, IScannerCheck, ITab):
         except UnicodeEncodeError:
             print ("Error in URL decode.")
         return None
-    def consolidateDuplicateIssues(self, isb, isa):
-        return -1
     def extensionUnloaded(self):
         print "BurpJS LinkFinder v2 unloaded"
         return
@@ -474,57 +470,6 @@ class linkAnalyse():
 
         #print("Returning Default: " + myString)
         return True
-
-class SRI(IScanIssue,ITab):
-    def __init__(self, reqres, helpers):
-        self.helpers = helpers
-        self.reqres = reqres
-
-    def getHost(self):
-        return self.reqres.getHost()
-
-    def getPort(self):
-        return self.reqres.getPort()
-
-    def getProtocol(self):
-        return self.reqres.getProtocol()
-
-    def getUrl(self):
-        return self.reqres.getUrl()
-
-    def getIssueName(self):
-        return "Linkfinder Analysed JS files"
-
-    def getIssueType(self):
-        return 0x08000000  # See http:#portswigger.net/burp/help/scanner_issuetypes.html
-
-    def getSeverity(self):
-        return "Information"  # "High", "Medium", "Low", "Information" or "False positive"
-
-    def getConfidence(self):
-        return "Certain"  # "Certain", "Firm" or "Tentative"
-
-    def getIssueBackground(self):
-        return str("JS files holds links to other parts of web applications. Refer to TAB for results.")
-
-    def getRemediationBackground(self):
-        return "This is an <b>informational</b> finding only.<br>"
-
-    def getIssueDetail(self):
-        return str("Burp Scanner has analysed the following JS file for links: <b>"
-                      "%s</b><br><br>" % (self.reqres.getUrl().toString()))
-
-    def getRemediationDetail(self):
-        return None
-
-    def getHttpMessages(self):
-        #print ("................raising issue................")
-        rra = [self.reqres]
-        return rra
-        
-    def getHttpService(self):
-        return self.reqres.getHttpService()
-        
-        
+    
 if __name__ in ('__main__', 'main'):
     EventQueue.invokeLater(Run(BurpExtender))
