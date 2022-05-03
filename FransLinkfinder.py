@@ -287,7 +287,7 @@ class BurpExtender(IBurpExtender, IHttpListener, ITab):
     
         # only process requests
         if not messageIsRequest:
-            if self.callbacks.inIsScope(self._helpers.analyzeRequest(messageInfo).getUrl()):
+            if self.callbacks.isInScope(self._helpers.analyzeRequest(messageInfo).getUrl()):
                 # create a new log entry with the message details
                 self._lock.acquire()
                 self.doPassiveScan(messageInfo)
