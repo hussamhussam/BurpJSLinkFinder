@@ -256,7 +256,8 @@ class BurpExtender(IBurpExtender, ITab):
                                     self.filesTxtArea.append("\n" + filNam)
                             
                     issues = ArrayList()
-                    issues.add(SRI(ihrr, self.helpers))
+                    #issues.add(SRI(ihrr, self.helpers))
+                    print("here----")
                     return issues
         except UnicodeEncodeError:
             print ("Error in URL decode.")
