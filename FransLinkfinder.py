@@ -287,11 +287,11 @@ class BurpExtender(IBurpExtender, IHttpListener, ITab):
     
         # only process requests
         if not messageIsRequest:
-        
-            # create a new log entry with the message details
-            self._lock.acquire()
-            self.doPassiveScan(messageInfo)
-            self._lock.release()
+            if self.callbacks.inScope(self._helpers.analyzeRequest(messageInfo).getUrl()):
+                # create a new log entry with the message details
+                self._lock.acquire()
+                self.doPassiveScan(messageInfo)
+                self._lock.release()
         return
 
     def ProcessQueue(self):
