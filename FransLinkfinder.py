@@ -233,7 +233,7 @@ class BurpExtender(IBurpExtender, IHttpListener, ITab):
         try:
             urlReq = ihrr.getUrl()
             testString = str(urlReq)
-            linkA = linkAnalyse(ihrr,self.helpers)
+            linkA = linkAnalyse(ihrr,self.helpers,self.mapTxtArea)
             # check if JS file
             if ".js" in str(urlReq):
                 # Exclude casual JS files
@@ -367,9 +367,10 @@ class BurpExtender(IBurpExtender, IHttpListener, ITab):
 
 class linkAnalyse():
     
-    def __init__(self, reqres, helpers):
+    def __init__(self, reqres, helpers, mapTxtArea):
         self.helpers = helpers
         self.reqres = reqres
+        self.mapTxtArea = mapTxtArea
         
 
     regex_str = """
@@ -475,7 +476,7 @@ class linkAnalyse():
         #Checks if the extracted URL is a full URL or if already in the mapped list
         #print("Checking URL: " + myString)
         try:
-            if ("http" in myString) or (myString in mapTxtArea.text):
+            if ("http" in myString) or (myString in self.mapTxtArea.text):
                 #print("Found HTTP in URL: " + myString)
                 return False
             
