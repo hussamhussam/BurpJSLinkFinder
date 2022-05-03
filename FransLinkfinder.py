@@ -4,9 +4,10 @@
 #  Copyright (c) 2022 Frans Hendrik Botes
 #  Credit to https://github.com/GerbenJavado/LinkFinder for the idea and regex
 #
-from burp import IBurpExtender, ITab
+from burp import IBurpExtender, ITab, IHttpListener
 from java.io import PrintWriter
 from java.net import URL
+from threading import Lock
 from java.util import ArrayList, List
 from java.util.regex import Matcher, Pattern
 import binascii
@@ -49,10 +50,11 @@ class Run(Runnable):
 # Needed params
 JSExclusionList = ['jquery', 'google-analytics','gpt.js','modernizr','gtm','fbevents']
 
-class BurpExtender(IBurpExtender, ITab):
+class BurpExtender(IBurpExtender, IHttpListener, ITab):
     def registerExtenderCallbacks(self, callbacks):
         self.callbacks = callbacks
         self.helpers = callbacks.getHelpers()
+        self._lock = Lock()
         callbacks.setExtensionName("BurpJSLinkFinderv2")
         stdout = PrintWriter(callbacks.getStdout(), True)
         stderr = PrintWriter(callbacks.getStderr(), True)
@@ -68,6 +70,7 @@ class BurpExtender(IBurpExtender, ITab):
         callbacks.customizeUiComponent(self._parentPane)
         callbacks.customizeUiComponent(self._parentPane)
         # add the custom tab to Burp's UI
+        callbacks.registerHttpListener(self)
         callbacks.addSuiteTab(self)
         
         print ("BurpJS LinkFinder v2 loaded.")
@@ -279,6 +282,17 @@ class BurpExtender(IBurpExtender, ITab):
             t = threading.Thread(target=self.ProcessQueue)
             self.threads.append(t)
             t.start()
+            
+    def processHttpMessage(self, toolFlag, messageIsRequest, messageInfo):
+    
+        # only process requests
+        if not messageIsRequest:
+        
+            # create a new log entry with the message details
+            self._lock.acquire()
+            self.doPassiveScan(messageInfo)
+            self._lock.release()
+        return
 
     def ProcessQueue(self):
         while not self.q.empty():
